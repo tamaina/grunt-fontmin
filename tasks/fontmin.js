@@ -1,14 +1,15 @@
 'use strict'
 
-let chalk = require('chalk')
-let grunt = require('grunt')
-let TTF   = require('node-sfnt')
-let ttf2woff = TTF.ttf2woff
+const chalk = require('chalk')
+const grunt = require('grunt')
+const TTF   = require('node-sfnt')
+const ttf2woff = TTF.ttf2woff
+const ttf2woff2 = require('ttf2woff2')
 
-let html2text = require('html-to-text')
-let basename = require('path').basename
-let extname  = require('path').extname
-let join = require('path').join
+const html2text = require('html-to-text')
+const basename = require('path').basename
+const extname  = require('path').extname
+const join = require('path').join
 
 module.exports = function(grunt){
     grunt.registerMultiTask('fontmin', 'Minimize fonts', taskFontmin)
@@ -25,15 +26,8 @@ function taskFontmin() {
     let src     = grunt.file.expand(data.src)
     let fonts   = grunt.file.expand(join(basedir, this.target))
     let getText = opts.getText!==undefined ? opts.getText : (content)=>html2text.fromString(content)
-    let type='woff', typeOpts=true
-
-    // check if more than one output option is specified
-    if ( !atMostDefined(data, 1, 'woff', 'css') )
-        throw new Error('Multiple output type defined!')
-
-    // set type, typeOpts
-    if (data.woff!==undefined) { type='woff' }
-    if (data.css!==undefined)  { type='css'; typeOpts=data.css }
+    let types   = opts.types || ['woff','woff2','ttf']
+    let typeOpts = true
 
     // string of unique characters(glyphs) to be included in minimized font
     let uniqGlyphs =
@@ -49,41 +43,40 @@ function taskFontmin() {
         // create output ArrayBuffer
         let ttf = readToTTF(path)
         let stripped = glyphStrip(ttf, uniqGlyphs)
-        let output = ttfToOutput(stripped, type, typeOpts)
-
-        // solve dest path, write output
-        let destPath = join(destdir, getOutputFilename(path,type))
-        grunt.file.write(destPath, toBuffer(output))
-
-        // output information
-        grunt.log.writeln(basename(path)+' => '+type+' '
-            +chalk.green(stripped.glyf.length)+' glyphs, '
-            +chalk.green(output.byteLength)+' bytes')
+        for( var i in types ){
+            let type = types[i]
+            let output = ttfToOutput(stripped, type, typeOpts)
+    
+            // solve dest path, write output
+            let destPath = join(destdir, getOutputFilename(path,type))
+            grunt.file.write(destPath, toBuffer(output))
+            // output information
+            grunt.log.writeln(basename(path)+' => '+type+' '
+                +chalk.green(stripped.glyf.length)+' glyphs, '
+                +chalk.green(output.byteLength)+' bytes')
+        }
     } )
 
 }
 
 // sourcePath: sourceFile's path
-// type: 'woff' or 'css'
+// type: 'ttf' 'woff' 'woff2'
 function getOutputFilename(sourcePath, type) {
     return stripFilename(basename(sourcePath))+'.'+type
 }
 
 // ttf:    ttf
-// output: output type, one of 'woff', 'css', default 'woff'
+// output: output type, one of 'ttf', 'woff', 'woff2', default 'woff'
 // opts:   output type specific option
 // return  ArrayBuffer
 // currently only woff is supported, TODO: impl css
 function ttfToOutput(ttf, type, opts) {
     type = type || 'woff'
-    switch (type) {
-        case 'woff':
-            let ttfAb = new TTF.TTFWriter().write(ttf)
-            return ttf2woff(ttfAb, {deflate: require('pako').deflate})
-        break;
-        case 'css':
-            throw new Error('CSS Output is not implemented!')
-        break;
+    let ttfAb = new TTF.TTFWriter().write(ttf)
+    switch(type){
+        case 'ttf': return ttfAb
+        case 'woff': return ttf2woff(ttfAb, {deflate: require('pako').deflate})
+        case 'woff2': return ttf2woff2(toBuffer(ttfAb), {deflate: require('pako').deflate})
     }
 }
 
@@ -116,18 +109,18 @@ function readToTTF(path) {
     switch(ext){
         case '.otf':
             return otf2ttfObj(ab)
-        break
+            break
         case '.ttf':
         case '.ttc':
             return new ttfReader().read(ab)
-        break
+            break
         case '.woff':
         case '.woff2':
             return ttfReader(woff2ttf(ab))
-        break
+            break
         default:
             throw new Error('Unsupported extension: '+ext)
-        break
+            break
     }
 }
 

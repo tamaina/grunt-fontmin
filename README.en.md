@@ -1,14 +1,43 @@
-grunt-fontmin
+grunt-fontmin-ex
 ===
-grunt plugin to minimize Chinese fonts
+**Subset Fonts Maker**
 
-## Configuration
+grunt plugin to minimize CJK fonts
+
+## Modifided by tamaina
+
+* Deleted css output
+  * You should write @font-face in your css by yourself
+* Added woff2 output
+  * By using **ttf2woff2**
+  * It requires **node-gyp** to build itself
+* Added Japanese readme
+
+## Supported Font Type
+
+### Import
+
+ttf, ttc, otf, woff, woff2
+
+### Output
+
+ttf, woff, woff2
+
+## How to use
+
+1.  ~~~
+    npm install grunt-fontmin-ex --save-dev
+    ~~~
+2. Add configuration in Gruntfile.js
+
+### Configuration
 ```JavaScript
 grunt.initConfig({
   fontmin: {
     options: {
       dest:    'www-bin/fonts/',  // default './'
       basedir: 'fonts/'           // default './'
+      types:   ['ttf','woff','woff2'] // default
     },
     '{Source-hans*.otf}': {
       /* getText: (html) => string_of_characters_to_include
@@ -34,6 +63,10 @@ grunt.loadNpmTasks('grunt-fontmin')
 * basedir:
   * source font directory, include trailing slash
   * default: `./`
+* types:
+  * `*Array*`.
+  * output extention(s)
+  * 'ttf', 'woff', 'woff2' are supported.
 
 ### target options
 * grunt's target name
@@ -49,22 +82,18 @@ grunt.loadNpmTasks('grunt-fontmin')
 * woff:
   * output compressed woff, anything other than `undefined`
   * default if no other output option is provided (like `css`)
-* css:
-  *  **NOT IMPLEMENTED!!**
-  *  this is planned for future, css with inlined base64 font
 
 
-## Caveat!
-It's hard to include texts in css `content:attr('')`
-
-Not formally tested, so it can be buggy
+## Information
 
 You can't change output filename
 
 **You are responsible to get proper license of fonts you minify!**  
-or consider [free fonts](http://zenozeng.github.io/Free-Chinese-Fonts/).
 
+or consider [free fonts](http://zenozeng.github.io/Free-Chinese-Fonts/) 
 
+or [The 🇯🇵 Web Fonts](https://tmin.xyz/The-Japanese-Web-Fonts/)
 
 ## License
 MIT (C) wacky6
+MIT (C) tamaina
