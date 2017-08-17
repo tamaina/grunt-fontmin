@@ -1,5 +1,9 @@
 grunt-fontmin-ex
 ===
+[![NPM](https://nodei.co/npm/grunt-fontmin-ex.png)](https://nodei.co/npm/grunt-fontmin-ex/)
+
+[THERE IS JAPANESE README](README.ja.md)
+
 **Subset Fonts Maker**
 
 grunt plugin to minimize CJK fonts

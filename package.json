@@ -1,6 +1,6 @@
 {
   "name": "grunt-fontmin-ex",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "grunt plugin to minimize CJK font",
   "main": "tasks/fontmin.js",
   "scripts": {
